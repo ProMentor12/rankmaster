@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+
+    <!-- Import Firebase App -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhiboEoHCmdG4eHdBeUacUY6EKDZMiGj0",
+            authDomain: "rankmaster-2007.firebaseapp.com",
+            projectId: "rankmaster-2007",
+            storageBucket: "rankmaster-2007.appspot.com",
+            messagingSenderId: "481619433177",
+            appId: "1:481619433177:web:5be2893aa094dbcc2b10c8",
+            measurementId: "G-NXE1T8RZ7H"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);  // Initialize Firebase Authentication
+        const db = getFirestore(app); // Initialize Firestore
+
+        // Function to handle user login
+        async function loginUser(event) {
+            event.preventDefault();  // Prevent the form from refreshing the page
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                // Sign in the user with email and password
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                console.log("User logged in:", user.email);
+
+                // Fetch additional user data from Firestore
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    console.log("User data:", userData);
+
+                    // Display user data
+                    document.getElementById("userData").innerText = `Welcome, ${userData.name}! Your age is ${userData.age}.`;
+                } else {
+                    console.log("No user data found in Firestore");
+                    document.getElementById("userData").innerText = "No additional user data found.";
+                }
+
+                // Display success message
+                document.getElementById("message").innerText = "User logged in successfully!";
+                document.getElementById("message").style.color = "green";
+            } catch (error) {
+                console.error("Error logging in user:", error);
+                document.getElementById("message").innerText = error.message;
+                document.getElementById("message").style.color = "red";
+            }
+        }
+
+        // Attach the loginUser function to the form onsubmit event
+        window.loginUser = loginUser;
+    </script>
+</head>
+<body>
+    <h1>Login User</h1>
+
+    <!-- Login Form -->
+    <form id="loginForm" onsubmit="loginUser(event)">
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+
+    <!-- Display success or error message -->
+    <p id="message"></p>
+    
+    <!-- Display user data after login -->
+    <p id="userData"></p>
+</body>
+</html>
